@@ -334,11 +334,6 @@ cd ai-resume-analyzer
 docker-compose up --build
 ```
 
-The application will be available at:
-- Frontend: http://localhost:80
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-
 ### Manual Deployment
 
 #### Backend Deployment
