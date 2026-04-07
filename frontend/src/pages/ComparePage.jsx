@@ -6,6 +6,7 @@ import { GitCompare, Trophy, TrendingUp, Upload } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import UploadZone from '../components/UploadZone'
 import LoadingOverlay from '../components/LoadingOverlay'
+import mockAPI from '../mockAPI'
 
 const COLORS = ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#14b8a6']
 
@@ -21,19 +22,25 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
-export default function ComparePage({ result, setResult, uploadedFile, setUploadedFile }) {
+export default function ComparePage({ result, setResult, uploadedFile, setUploadedFile, useMockAPI }) {
   const [loading, setLoading] = useState(false)
 
   const handleCompare = async () => {
     if (!uploadedFile) return toast.error('Please upload your resume first.')
     setLoading(true)
     try {
-      const formData = new FormData()
-      formData.append('file', uploadedFile)
-      const { data } = await axios.post('/api/compare', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      setResult(data.comparisons)
+      let data
+      if (useMockAPI) {
+        data = await mockAPI.compareRoles(uploadedFile)
+      } else {
+        const formData = new FormData()
+        formData.append('file', uploadedFile)
+        const response = await axios.post('/api/compare', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        data = response.data
+      }
+      setResult(data)
       toast.success('Comparison complete!')
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Comparison failed.')

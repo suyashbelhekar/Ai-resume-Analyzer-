@@ -8,6 +8,10 @@ import ComparePage from './pages/ComparePage'
 import ResumeBuilder from './pages/ResumeBuilder'
 import ProfilePage from './pages/ProfilePage'
 
+// Use mock API for GitHub Pages deployment
+const isProduction = import.meta.env.PROD
+const useMockAPI = isProduction && !import.meta.env.VITE_API_URL?.includes('localhost')
+
 function AppInner() {
   const [activePage, setActivePage] = useState('dashboard')
   const [analysisResult, setAnalysisResult] = useState(null)
@@ -24,6 +28,7 @@ function AppInner() {
             setAnalysisResult={setAnalysisResult}
             uploadedFile={uploadedFile}
             setUploadedFile={setUploadedFile}
+            useMockAPI={useMockAPI}
           />
         )
       case 'analysis':
@@ -35,6 +40,7 @@ function AppInner() {
             setResult={setCompareResult}
             uploadedFile={uploadedFile}
             setUploadedFile={setUploadedFile}
+            useMockAPI={useMockAPI}
           />
         )
       case 'builder':
