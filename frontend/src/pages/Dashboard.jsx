@@ -10,6 +10,7 @@ import UploadZone from '../components/UploadZone'
 import LoadingOverlay from '../components/LoadingOverlay'
 import AuthModal from '../components/AuthModal'
 import { useAuth } from '../context/AuthContext'
+import { demoAnalysisData } from '../demoData'
 
 const ROLES = [
   'Data Scientist', 'Software Engineer', 'Frontend Developer',
@@ -30,7 +31,7 @@ const stats = [
   { label: 'Courses',       value: '50+',  icon: BookOpen, color: 'text-amber-600',   bg: 'bg-amber-50'   },
 ]
 
-export default function Dashboard({ onNavigate, analysisResult, setAnalysisResult, uploadedFile, setUploadedFile }) {
+export default function Dashboard({ onNavigate, analysisResult, setAnalysisResult, uploadedFile, setUploadedFile, useDemoMode }) {
   const { user, logout } = useAuth()
   const [selectedRole, setSelectedRole] = useState('')
   const [loading, setLoading] = useState(false)
@@ -46,17 +47,27 @@ export default function Dashboard({ onNavigate, analysisResult, setAnalysisResul
       setLoadingStep(prev => Math.min(prev + 1, 4))
     }, 800)
     try {
-      const formData = new FormData()
-      formData.append('file', uploadedFile)
-      formData.append('job_role', selectedRole)
-      const { data } = await axios.post('/api/analyze', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      let data
+      if (useDemoMode) {
+        // Use demo data for GitHub Pages
+        await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API delay
+        data = { ...demoAnalysisData, job_role: selectedRole }
+        toast.success('Demo analysis complete!')
+      } else {
+        // Use real backend API
+        const formData = new FormData()
+        formData.append('file', uploadedFile)
+        formData.append('job_role', selectedRole)
+        const response = await axios.post('/api/analyze', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        data = response.data
+        toast.success('Analysis complete!')
+      }
       clearInterval(stepInterval)
       setLoadingStep(4)
       await new Promise(r => setTimeout(r, 500))
       setAnalysisResult(data)
-      toast.success('Analysis complete!')
       onNavigate('analysis')
     } catch (err) {
       clearInterval(stepInterval)

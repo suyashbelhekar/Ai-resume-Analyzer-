@@ -8,6 +8,10 @@ import ComparePage from './pages/ComparePage'
 import ResumeBuilder from './pages/ResumeBuilder'
 import ProfilePage from './pages/ProfilePage'
 
+// Check if running on GitHub Pages (no backend available)
+const isGitHubPages = window.location.hostname === 'suyashbelhekar.github.io'
+const useDemoMode = isGitHubPages
+
 function AppInner() {
   const [activePage, setActivePage] = useState('dashboard')
   const [analysisResult, setAnalysisResult] = useState(null)
@@ -24,6 +28,7 @@ function AppInner() {
             setAnalysisResult={setAnalysisResult}
             uploadedFile={uploadedFile}
             setUploadedFile={setUploadedFile}
+            useDemoMode={useDemoMode}
           />
         )
       case 'analysis':
@@ -35,6 +40,7 @@ function AppInner() {
             setResult={setCompareResult}
             uploadedFile={uploadedFile}
             setUploadedFile={setUploadedFile}
+            useDemoMode={useDemoMode}
           />
         )
       case 'builder':
