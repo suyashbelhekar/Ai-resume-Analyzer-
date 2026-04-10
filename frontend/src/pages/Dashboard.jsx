@@ -10,7 +10,6 @@ import UploadZone from '../components/UploadZone'
 import LoadingOverlay from '../components/LoadingOverlay'
 import AuthModal from '../components/AuthModal'
 import { useAuth } from '../context/AuthContext'
-import mockAPI from '../mockAPI'
 
 const ROLES = [
   'Data Scientist', 'Software Engineer', 'Frontend Developer',
@@ -31,7 +30,7 @@ const stats = [
   { label: 'Courses',       value: '50+',  icon: BookOpen, color: 'text-amber-600',   bg: 'bg-amber-50'   },
 ]
 
-export default function Dashboard({ onNavigate, analysisResult, setAnalysisResult, uploadedFile, setUploadedFile, useMockAPI }) {
+export default function Dashboard({ onNavigate, analysisResult, setAnalysisResult, uploadedFile, setUploadedFile }) {
   const { user, logout } = useAuth()
   const [selectedRole, setSelectedRole] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,18 +46,12 @@ export default function Dashboard({ onNavigate, analysisResult, setAnalysisResul
       setLoadingStep(prev => Math.min(prev + 1, 4))
     }, 800)
     try {
-      let data
-      if (useMockAPI) {
-        data = await mockAPI.analyzeResume(uploadedFile, selectedRole)
-      } else {
-        const formData = new FormData()
-        formData.append('file', uploadedFile)
-        formData.append('job_role', selectedRole)
-        const response = await axios.post('/api/analyze', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        data = response.data
-      }
+      const formData = new FormData()
+      formData.append('file', uploadedFile)
+      formData.append('job_role', selectedRole)
+      const { data } = await axios.post('/api/analyze', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
       clearInterval(stepInterval)
       setLoadingStep(4)
       await new Promise(r => setTimeout(r, 500))
