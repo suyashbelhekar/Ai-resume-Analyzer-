@@ -319,7 +319,65 @@ The live preview `div` is captured by `html2pdf.js` at 2× scale using `html2can
 
 ---
 
-## Deployment
+## Docker Deployment (Recommended)
+
+### Prerequisites
+- Docker Desktop installed on your machine
+- Git for cloning the repository
+
+### Quick Start
+
+1. **Clone and Deploy:**
+```bash
+git clone https://github.com/suyashbelhekar/Ai-resume-Analyzer-.git
+cd Ai-resume-Analyzer-
+docker-compose up --build -d
+```
+
+2. **Access the Application:**
+- Frontend: http://localhost:80
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### Individual Services
+
+#### Backend Only:
+```bash
+cd backend
+docker build -t ai-resume-analyzer-backend .
+docker run -p 8000:8000 ai-resume-analyzer-backend
+```
+
+#### Frontend Only:
+```bash
+cd frontend
+docker build -t ai-resume-analyzer-frontend .
+docker run -p 80:80 ai-resume-analyzer-frontend
+```
+
+### Production Deployment
+
+#### Deploy to Cloud:
+```bash
+# Build and push to Docker Hub
+docker build -t suyashbelhekar/ai-resume-analyzer:latest ./backend
+docker push suyashbelhekar/ai-resume-analyzer:latest
+
+# Deploy on cloud server
+docker run -d -p 8000:8000 --name ai-resume-backend suyashbelhekar/ai-resume-analyzer:latest
+```
+
+#### Environment Variables:
+```bash
+# Create .env file
+echo "PYTHONUNBUFFERED=1" > .env
+echo "BACKEND_HOST=0.0.0.0" >> .env
+echo "BACKEND_PORT=8000" >> .env
+```
+
+---
+
+## Manual Deployment
 
 ### Docker Deployment (Recommended)
 
