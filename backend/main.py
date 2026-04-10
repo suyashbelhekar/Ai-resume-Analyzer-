@@ -2,31 +2,50 @@
 FastAPI backend for AI Resume Skill Gap Analyzer.
 """
 
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Header
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
-from pydantic import BaseModel, EmailStr
+from fastapi.responses import JSONResponse, Response
+from pydantic import BaseModel
 import uvicorn
-import traceback
+import os
+from pathlib import Path
+import tempfile
+import shutil
+from typing import List, Dict, Any
 import logging
+import traceback
 
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from nlp_engine import analyze_resume, compare_roles
-from report_gen import generate_report
-from skill_db import JOB_ROLES
-from auth import register_user, login_user, get_user_from_token
+from nlp_engine import NLPAnalyzer
+from resume_parser import ResumeParser
+from course_recommender import CourseRecommender
 
+# Initialize FastAPI app
 app = FastAPI(
     title="AI Resume Skill Gap Analyzer API",
     description="NLP-powered resume analysis and skill gap detection",
     version="1.0.0"
 )
 
+# Configure CORS for production
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173", 
+    "https://ai-resume-analyzer-frontend.onrender.com",
+    "https://suyashbelhekar.github.io"
+]
+
+# Add Render frontend URL when available
+render_frontend_url = os.getenv("RENDER_FRONTEND_URL")
+if render_frontend_url:
+    allowed_origins.append(render_frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
