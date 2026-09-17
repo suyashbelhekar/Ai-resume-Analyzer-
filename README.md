@@ -4,13 +4,8 @@
 
 **CareerAI** is an end-to-end, production-grade AI Career & Resume Intelligence Platform. It guides candidates through the complete career lifecycle — from parsing job postings and auditing ATS compliance to rewriting bullet points with zero hallucination, generating tailored resumes, learning via step-by-step career roadmaps, practicing AI mock interviews, and tracking job applications on a Kanban board.
 
----
 
-## 🌟 Complete Candidate Journey
-
-$$\text{Resume} \rightarrow \text{Job Description} \rightarrow \text{9D Intelligence Analysis} \rightarrow \text{Skill Evidence Mapping} \rightarrow \text{AI Resume Rewriter} \rightarrow \text{Tailored Resume} \rightarrow \text{ATS Simulator} \rightarrow \text{Career Roadmap} \rightarrow \text{Interview Prep \& Mock} \rightarrow \text{Kanban Tracker} \rightarrow \text{Resume Versions}$$
-
----
+live at:  ai-resume-analyzer-xi-liard.vercel.app
 
 ## 🚀 Key Features
 
