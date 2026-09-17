@@ -1,0 +1,9 @@
+{
+  "name": "career-ai-platform",
+  "private": true,
+  "version": "3.0.0",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev"
+  }
+}
