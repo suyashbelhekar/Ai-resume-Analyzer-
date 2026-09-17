@@ -1,85 +1,148 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
+import { CareerProvider } from './context/CareerContext'
+import { ResumeProvider } from './context/ResumeContext'
+import { ThemeProvider, useTheme } from './context/ThemeContext'
+
 import Sidebar from './components/Sidebar'
+import Header from './components/Header'
+import AuthModal from './components/AuthModal'
 import Dashboard from './pages/Dashboard'
+import JDAnalyzerPage from './pages/JDAnalyzerPage'
 import AnalysisPage from './pages/AnalysisPage'
-import ComparePage from './pages/ComparePage'
+import SkillGapPage from './pages/SkillGapPage'
+import RewriterPage from './pages/RewriterPage'
+import TailoredResumePage from './pages/TailoredResumePage'
+import ATSSimulatorPage from './pages/ATSSimulatorPage'
+import CareerRoadmapPage from './pages/CareerRoadmapPage'
+import InterviewPrepPage from './pages/InterviewPrepPage'
+import ApplicationsPage from './pages/ApplicationsPage'
+import ResumeVersionsPage from './pages/ResumeVersionsPage'
 import ResumeBuilder from './pages/ResumeBuilder'
 import ProfilePage from './pages/ProfilePage'
 
-// Check if running on GitHub Pages (no backend available)
-const isGitHubPages = window.location.hostname === 'suyashbelhekar.github.io'
-const useDemoMode = isGitHubPages
-
 function AppInner() {
   const [activePage, setActivePage] = useState('dashboard')
-  const [analysisResult, setAnalysisResult] = useState(null)
-  const [compareResult, setCompareResult] = useState(null)
-  const [uploadedFile, setUploadedFile] = useState(null)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('career_ai_sidebar_collapsed') === 'true'
+    } catch {
+      return false
+    }
+  })
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { isDark } = useTheme()
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(prev => {
+      const next = !prev
+      try {
+        localStorage.setItem('career_ai_sidebar_collapsed', String(next))
+      } catch (e) {
+        console.warn('Could not save sidebar state', e)
+      }
+      return next
+    })
+  }
 
   const renderPage = () => {
     switch (activePage) {
       case 'dashboard':
-        return (
-          <Dashboard
-            onNavigate={setActivePage}
-            analysisResult={analysisResult}
-            setAnalysisResult={setAnalysisResult}
-            uploadedFile={uploadedFile}
-            setUploadedFile={setUploadedFile}
-            useDemoMode={useDemoMode}
-          />
-        )
+        return <Dashboard onNavigate={setActivePage} />
+      case 'jd-analyzer':
+        return <JDAnalyzerPage onNavigate={setActivePage} />
+      case 'analysis-flow':
       case 'analysis':
-        return <AnalysisPage result={analysisResult} uploadedFile={uploadedFile} onNavigate={setActivePage} />
-      case 'compare':
-        return (
-          <ComparePage
-            result={compareResult}
-            setResult={setCompareResult}
-            uploadedFile={uploadedFile}
-            setUploadedFile={setUploadedFile}
-            useDemoMode={useDemoMode}
-          />
-        )
+        return <AnalysisPage onNavigate={setActivePage} />
+      case 'skill-gap':
+        return <SkillGapPage onNavigate={setActivePage} />
+      case 'rewriter':
+        return <RewriterPage onNavigate={setActivePage} />
+      case 'tailored-resume':
+        return <TailoredResumePage onNavigate={setActivePage} />
+      case 'ats-simulator':
+        return <ATSSimulatorPage onNavigate={setActivePage} />
+      case 'roadmap':
+        return <CareerRoadmapPage onNavigate={setActivePage} />
+      case 'interview-prep':
+        return <InterviewPrepPage onNavigate={setActivePage} />
+      case 'applications':
+        return <ApplicationsPage onNavigate={setActivePage} />
+      case 'resume-versions':
+        return <ResumeVersionsPage onNavigate={setActivePage} />
       case 'builder':
-        return <ResumeBuilder analysisResult={analysisResult} />
+        return <ResumeBuilder />
       case 'profile':
-        return <ProfilePage />
+        return <ProfilePage onNavigate={setActivePage} />
       default:
-        return null
+        return <Dashboard onNavigate={setActivePage} />
     }
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200">
       <Toaster
         position="top-right"
         toastOptions={{
           style: {
-            background: '#ffffff',
-            color: '#1e293b',
-            border: '1px solid #e2e8f0',
+            background: isDark ? '#0f172a' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#1e293b',
+            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
             borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 20px rgba(0,0,0,0.08)',
+            fontSize: '13px',
+            fontWeight: 500
           },
           success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
           error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
         }}
       />
-      <Sidebar activePage={activePage} onNavigate={setActivePage} />
-      <main className="flex-1 overflow-y-auto">
-        {renderPage()}
-      </main>
+
+      {/* Sidebar with collapse support and dark mode styling */}
+      <Sidebar
+        activePage={activePage}
+        onNavigate={setActivePage}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
+      />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Sticky Header with Sidebar Toggle Button & Dark/Light Mode Button */}
+        <Header
+          activePage={activePage}
+          sidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={toggleSidebar}
+          onNavigate={setActivePage}
+          onOpenAuth={() => setShowAuthModal(true)}
+        />
+
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+          {renderPage()}
+        </main>
+      </div>
+
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
     </div>
   )
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CareerProvider>
+          <ResumeProvider>
+            <AppInner />
+          </ResumeProvider>
+        </CareerProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }

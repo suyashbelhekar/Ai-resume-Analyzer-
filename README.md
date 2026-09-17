@@ -1,440 +1,218 @@
-# AI Resume Skill Gap Analyzer
+# CareerAI — AI Career & Resume Intelligence Platform
 
-A full-stack, NLP-powered web application that analyzes resumes against job roles, identifies skill gaps, and helps users build professional resumes — all in one place.
+> **"Analyze. Improve. Prepare. Get Career Ready."**
 
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [How It Works — Workflow](#how-it-works--workflow)
-- [NLP Pipeline](#nlp-pipeline)
-- [Resume Builder](#resume-builder)
-- [API Reference](#api-reference)
-- [Getting Started](#getting-started)
-- [Screenshots](#screenshots)
+**CareerAI** is an end-to-end, production-grade AI Career & Resume Intelligence Platform. It guides candidates through the complete career lifecycle — from parsing job postings and auditing ATS compliance to rewriting bullet points with zero hallucination, generating tailored resumes, learning via step-by-step career roadmaps, practicing AI mock interviews, and tracking job applications on a Kanban board.
 
 ---
 
-## Overview
+## 🌟 Complete Candidate Journey
 
-Upload your resume (PDF or DOCX), select a target job role, and instantly get:
-
-- A **match score** showing how well your resume fits the role
-- A list of **matched** and **missing skills**
-- **AI-generated suggestions** to improve your resume
-- **Course recommendations** for skill gaps
-- **ATS optimization tips** to pass applicant tracking systems
-- A **downloadable PDF report**
-- A full **Resume Builder** to create a new resume from scratch
+$$\text{Resume} \rightarrow \text{Job Description} \rightarrow \text{9D Intelligence Analysis} \rightarrow \text{Skill Evidence Mapping} \rightarrow \text{AI Resume Rewriter} \rightarrow \text{Tailored Resume} \rightarrow \text{ATS Simulator} \rightarrow \text{Career Roadmap} \rightarrow \text{Interview Prep \& Mock} \rightarrow \text{Kanban Tracker} \rightarrow \text{Resume Versions}$$
 
 ---
 
-## Features
+## 🚀 Key Features
 
-### Skill Gap Analyzer
-- Upload resume as PDF or DOCX (up to 10MB)
-- Drag-and-drop file upload with instant preview
-- Select from 8 target job roles
-- NLP-based skill extraction using spaCy NER + TF-IDF cosine similarity
-- Weighted match scoring (core skills carry 2x weight)
-- Circular progress rings for Match Score and Resume Score
-- Skill radar chart and bar chart visualization
-- Color-coded skill tags — green (matched), red (missing), blue (bonus)
-- AI-generated personalized improvement suggestions
-- Course recommendations linked to Coursera, Udemy, and more
-- ATS keyword optimization tips per job role
-- Downloadable PDF analysis report
+### 1. 📄 Job Description Analyzer
+- Paste raw JD text or upload JD documents (`.pdf`, `.docx`, `.doc`, `.txt`).
+- Extracts structured requirements: Identified Job Title, Seniority Level, Experience Years, Education, Required Core Skills, Preferred Skills, Tooling/Technologies, Certifications, Key Responsibilities, and High-Priority ATS Keywords.
+- One-click **"Save to Library"** and **"Match Against Active Resume"**.
 
-### Multi-Role Comparison
-- Upload once, compare against all 8 job roles simultaneously
-- Ranked results with match percentages
-- Bar chart showing scores across all roles
-- Best match highlighted with a trophy badge
-- Animated progress bars per role card
+### 2. 🔍 Resume + JD 9-Dimensional Intelligence Matcher
+- Deep multi-dimensional alignment across:
+  1. *Skill alignment*
+  2. *Experience alignment*
+  3. *Project alignment*
+  4. *Education alignment*
+  5. *Keyword alignment*
+  6. *Technology alignment*
+  7. *Responsibility alignment*
+  8. *Certification alignment*
+  9. *Seniority alignment*
+- Distinct scores: **Overall Match**, **Skill Match**, **Experience Match**, **Project Match**, **Education Match**, **Keyword Match**, and **ATS Score**.
 
-### Resume Builder
-- 6 professional resume templates: Modern, Minimal, Creative, Professional, ATS Friendly, Executive
-- Live split-screen preview — changes reflect instantly
-- Dynamic form with collapsible sections
-- Add/remove entries for Experience, Education, Projects, Certifications
-- Skill tag editor with inline add/remove
-- Accent color picker (8 colors) applied across the selected template
-- Profile completion progress bar (0–100%)
-- Auto-save to localStorage — data persists on refresh
-- Auto-fill skills from Skill Gap Analyzer results
-- One-click PDF download using html2pdf.js
-- ATS-friendly export option
+### 3. 🎯 Skill Gap & Skill Evidence Mapping
+- **Verified Skill Evidence**: Cites the exact sentence/quote in your resume where each matched skill was detected, along with section origin (`Projects -> CardioAI`, `Experience -> Tech Corp`) and confidence rating.
+- **Skill Gap Bridge Advice**: For every missing skill, provides JD importance weighting, recommended learning courses, hands-on portfolio project blueprints, and ethical resume guidelines (*Add only after building!*).
+- **Weak / Partial Skills**: Identifies keywords mentioned without sufficient depth or metrics.
 
-### UI/UX
-- Clean white/light theme with subtle gradient backgrounds
-- Glassmorphism cards with soft shadows
-- Smooth animations powered by Framer Motion
-- Responsive sidebar navigation with active state indicators
-- Step-by-step animated loading overlay during analysis
-- Toast notifications for success and error states
-- Custom scrollbar styling
+### 4. ✍️ Anti-Hallucination AI Resume Rewriter
+- Rewrite summaries, experience bullets, project descriptions, or achievements with 6 professional modes:
+  - `Improve Impact` — Dynamic action verbs and polished clarity
+  - `ATS Optimize` — Injects recruiter keywords naturally
+  - `Make Technical` — Highlights systems architecture and engineering patterns
+  - `Make Concise` — Removes filler words and sharpens phrasing
+  - `Quantify Metrics` — Restructures into XYZ formula with honest placeholders like `[reduced latency by X%]`
+  - `Executive Polish` — Senior-level corporate phrasing
+- Strict Anti-Hallucination guardrail: Never fabricates companies, degrees, or fake metrics.
+- One-click **"Apply to Resume Builder"**.
+
+### 5. ⚡ Job-Specific Tailored Resume Generator
+- Combines candidate's existing resume data + target JD.
+- Re-orders technical skills by relevance to target job.
+- Generates a targeted summary and optimizes project bullet points.
+- Directly synchronized with the interactive **Resume Builder**.
+
+### 6. 🛡️ ATS Simulator & Compliance Auditor
+- Transparent, explainable ATS parsing simulation:
+  - **Keyword Coverage Score**
+  - **Section Structure & Standard Headers**
+  - **Readability & Action Verbs Check**
+  - **JD Alignment Score**
+  - **Formatting & Contact Info Check**
+- Categorized findings: **Critical Issues** (Red), **Warnings** (Amber), and **Actionable Suggestions** (Blue).
+
+### 7. 🗺️ AI Career Roadmap & Capstone Project
+- Step-by-step weekly milestone learning schedule tailored to target gaps.
+- Includes difficulty ratings, practice assignments, and portfolio evidence goals.
+- Interactive completion checkboxes with persistent progress bar.
+- **Capstone Engineering Project Blueprint**: Complete problem statement, architecture flow, tech stack, and portfolio resume bullet.
+
+### 8. 🎙️ AI Interview Prep & Interactive Mock Interview Simulator
+- **Question Bank**: Categorized questions (`Technical`, `Behavioral`, `Project`, `HR`, `Situational`, `Skill-Gap`) with expandable *Hints* and *STAR Answer Frameworks*.
+- **Interactive Mock Simulator**: Type or speak your answer $\rightarrow$ AI evaluates on *Technical Accuracy, Relevance, Clarity, Structure, and Completeness* $\rightarrow$ Gives scored feedback, strengths, and weaknesses.
+
+### 9. 📋 Job Application Pipeline Tracker
+- Full application lifecycle tracker with **Kanban Board** and **Table Views**.
+- Pipeline stages: `Wishlist` $\rightarrow$ `Applied` $\rightarrow$ `Assessment` $\rightarrow$ `Interview` $\rightarrow$ `Offer` $\rightarrow$ `Rejected`.
+- Track company, role, location, application date, interview date, match score, ATS score, salary, and notes.
+
+### 10. 📑 Resume Version Management & Comparison
+- Save multiple targeted resumes (*Data Engineer Resume*, *Fullstack Dev Resume*, *ML Engineer Resume*).
+- **V1 vs V2 Side-by-Side Comparison**: Computes ATS score improvement deltas, keyword coverage changes, and newly added skills.
+
+### 11. 🛠️ Interactive Resume Builder
+- 6 customizable templates: *Modern*, *Minimal*, *Creative*, *Professional*, *ATS Friendly*, and *Executive*.
+- Real-time live preview with profile completion gauge.
+- High-fidelity PDF export via `html2pdf.js` and ReportLab backend.
 
 ---
 
-## Tech Stack
-
-### Frontend
-| Technology | Purpose |
-|---|---|
-| React 18 | UI framework |
-| Tailwind CSS 3 | Utility-first styling |
-| Framer Motion | Animations and transitions |
-| Recharts | Radar chart and bar chart visualizations |
-| Axios | HTTP client for API calls |
-| React Dropzone | Drag-and-drop file upload |
-| React Hot Toast | Notification toasts |
-| Lucide React | Icon library |
-| html2pdf.js | Client-side PDF generation |
-| Vite | Build tool and dev server |
+## 🏗️ Architecture & Technology Stack
 
 ### Backend
-| Technology | Purpose |
-|---|---|
-| FastAPI | REST API framework |
-| Uvicorn | ASGI server with hot reload |
-| spaCy (en_core_web_sm) | Named Entity Recognition for skill extraction |
-| scikit-learn (TF-IDF) | Cosine similarity for fuzzy skill matching |
-| NumPy | Numerical operations |
-| pdfplumber | PDF text extraction |
-| python-docx | DOCX text extraction |
-| ReportLab | Server-side PDF report generation |
-| python-multipart | Multipart form data handling |
+- **FastAPI**: Asynchronous Python API framework
+- **Google Gemini API**: Centralized AI service (`gemini-2.5-flash`) via `google-genai` SDK
+- **SQLite Database (`career_ai.db`)**: Persistent repository layer with user isolation
+- **Local NLP & TF-IDF**: spaCy (`en_core_web_sm`) + scikit-learn cosine similarity for robust offline fallback
+- **Document Extractors**: `pdfplumber`, `pypdf`, `python-docx`
+- **ReportLab**: Executive PDF report generation
 
-### State Management
-- React Context API (`ResumeContext`) for Resume Builder state
-- `useState` / `useEffect` for analyzer state in App.jsx
-- `localStorage` for Resume Builder auto-save
+### Frontend
+- **React 18 & Vite**: Fast modular frontend
+- **Tailwind CSS**: Modern design system
+- **Framer Motion**: Smooth micro-animations
+- **Recharts**: Radar charts, breakdown bars, and pipeline metrics
+- **Axios**: Centralized API service with Bearer token interceptor
+- **React Dropzone & Hot Toast**: Seamless drag-and-drop and alert notifications
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-ai-resume-analyzer/
+Ai-resume-Analyzer/
 ├── backend/
-│   ├── main.py              # FastAPI app, routes, CORS
-│   ├── nlp_engine.py        # NLP pipeline: extraction, matching, scoring
-│   ├── skill_db.py          # Job roles, skill database, course recommendations
-│   ├── report_gen.py        # PDF report generation with ReportLab
-│   └── requirements.txt
-│
-└── frontend/
-    ├── index.html
-    ├── vite.config.js        # Vite config with /api proxy to :8000
-    ├── tailwind.config.js
-    └── src/
-        ├── App.jsx            # Root component, page routing
-        ├── index.css          # Global styles, Tailwind layers, utility classes
-        ├── main.jsx
-        ├── context/
-        │   └── ResumeContext.jsx   # Resume Builder global state
-        ├── components/
-        │   ├── Sidebar.jsx         # Navigation sidebar
-        │   ├── UploadZone.jsx      # Drag-and-drop file upload
-        │   ├── CircularScore.jsx   # Animated SVG circular progress ring
-        │   ├── SkillCharts.jsx     # Radar + bar charts
-        │   ├── SkillTags.jsx       # Matched / missing / bonus skill tags
-        │   └── LoadingOverlay.jsx  # Animated analysis loading screen
-        └── pages/
-            ├── Dashboard.jsx       # Upload + role selection + analyze
-            ├── AnalysisPage.jsx    # Full analysis results view
-            ├── ComparePage.jsx     # Multi-role comparison
-            ├── ResumeBuilder.jsx   # Resume Builder main page
-            └── builder/
-                ├── ResumeForm.jsx       # Dynamic multi-section form
-                ├── ResumePreview.jsx    # Scaled live preview wrapper
-                ├── TemplateSelector.jsx # Template + color picker
-                └── templates/
-                    ├── ModernTemplate.jsx       # Header bar + two-column layout
-                    ├── MinimalTemplate.jsx      # Clean single-column
-                    ├── CreativeTemplate.jsx     # Bold header + pill skills
-                    ├── ProfessionalTemplate.jsx # Serif corporate style
-                    ├── ATSTemplate.jsx          # Plain text, ATS-optimized
-                    └── ExecutiveTemplate.jsx    # Dark header + accent bar
+│   ├── main.py              # FastAPI REST endpoints & Pydantic models
+│   ├── gemini_service.py    # Centralized Google Gemini AI service
+│   ├── database.py          # SQLite persistence repository layer
+│   ├── ats_checker.py       # Deterministic + AI ATS simulation engine
+│   ├── nlp_engine.py        # spaCy + TF-IDF offline parser & evidence locator
+│   ├── report_gen.py        # ReportLab PDF executive report generator
+│   ├── auth.py              # JWT authentication module
+│   ├── skill_db.py          # Predefined role databases & ATS keywords
+│   ├── test_backend.py      # Automated backend API test suite
+│   ├── requirements.txt     # Python dependencies
+│   └── .env                 # Server & GEMINI_API_KEY configuration
+├── frontend/
+│   ├── src/
+│   │   ├── services/
+│   │   │   └── api.js       # Centralized Axios API service client
+│   │   ├── context/
+│   │   │   ├── CareerContext.jsx # Global Career intelligence state
+│   │   │   ├── AuthContext.jsx   # Authentication context
+│   │   │   └── ResumeContext.jsx # Resume builder state
+│   │   ├── pages/
+│   │   │   ├── Dashboard.jsx         # Career Command Center
+│   │   │   ├── JDAnalyzerPage.jsx    # Job Description Analyzer
+│   │   │   ├── AnalysisPage.jsx      # Resume Intelligence Analysis
+│   │   │   ├── SkillGapPage.jsx      # Skill Gap & Evidence Mapping
+│   │   │   ├── RewriterPage.jsx      # Anti-Hallucination AI Rewriter
+│   │   │   ├── TailoredResumePage.jsx# Tailored Resume Generator
+│   │   │   ├── ATSSimulatorPage.jsx  # ATS Simulation & Auditor
+│   │   │   ├── CareerRoadmapPage.jsx # Career Roadmap & Capstone
+│   │   │   ├── InterviewPrepPage.jsx # AI Mock Interview Simulator
+│   │   │   ├── ApplicationsPage.jsx  # Job Application Tracker
+│   │   │   ├── ResumeVersionsPage.jsx# Version Management & Comparison
+│   │   │   ├── ResumeBuilder.jsx     # Multi-template Resume Builder
+│   │   │   └── ProfilePage.jsx       # Profile & AI Engine Status
+│   │   ├── components/      # Reusable UI components
+│   │   └── App.jsx          # Root routing & provider tree
+│   ├── package.json
+│   └── vite.config.js
+├── start-all.bat            # One-click fullstack launcher
+└── README.md
 ```
 
 ---
 
-## How It Works — Workflow
+## ⚡ Getting Started
 
-```
-User uploads resume (PDF / DOCX)
-        │
-        ▼
-Text extraction
-  ├── PDF  → pdfplumber
-  └── DOCX → python-docx
-        │
-        ▼
-Text preprocessing
-  └── Lowercase, strip punctuation, normalize whitespace
-        │
-        ▼
-Skill extraction (3-layer approach)
-  ├── 1. Direct keyword matching (regex word boundaries)
-  ├── 2. spaCy NER (ORG, PRODUCT entities mapped to skills)
-  └── 3. TF-IDF cosine similarity (fuzzy / semantic matching)
-        │
-        ▼
-Match scoring against selected job role
-  ├── Core skills → 2x weight
-  ├── Non-core skills → 1x weight
-  ├── Bonus skills (extra, not required) → up to +5 points
-  └── Final score clamped to 0–100
-        │
-        ▼
-Output generation
-  ├── Matched skills list
-  ├── Missing skills list (skill gaps)
-  ├── Extra/bonus skills
-  ├── AI improvement suggestions
-  ├── Course recommendations (per missing skill)
-  ├── ATS keyword tips
-  └── Resume quality score
-        │
-        ▼
-Frontend renders results
-  ├── Circular score rings (animated SVG)
-  ├── Radar chart + bar chart
-  ├── Color-coded skill tags
-  └── Cards for suggestions, courses, ATS tips
-        │
-        ▼
-Optional: Download PDF report (ReportLab, server-side)
+### 1. Prerequisites
+- Python 3.10+
+- Node.js 18+ and npm
+
+### 2. Configure Backend Environment
+Create or edit `backend/.env`:
+```env
+# Google Gemini API Key (Get from https://aistudio.google.com/app/apikey)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Server Configuration
+HOST=127.0.0.1
+PORT=8000
+SECRET_KEY=career-ai-jwt-secret-2026
 ```
 
----
-
-## NLP Pipeline
-
-### Skill Extraction
-
-Three complementary methods run in sequence and results are merged:
-
-**1. Keyword Matching**
-Every skill in the database is matched against the resume text using regex word boundaries (`\bskill\b`). This catches exact matches reliably.
-
-**2. spaCy NER**
-The resume text is passed through spaCy's `en_core_web_sm` model. Entities labeled `ORG`, `PRODUCT`, or `GPE` are cross-referenced against the skill database for partial matches (e.g., "TensorFlow" recognized as an organization entity).
-
-**3. TF-IDF Cosine Similarity**
-The full resume text and each skill string are vectorized using `TfidfVectorizer` with 1–2 ngrams. Skills with cosine similarity > 0.15 against the resume vector are included. This catches paraphrased or contextually similar mentions.
-
-### Match Scoring
-
-```
-total_weight = len(core_skills) × 2 + len(non_core_skills)
-achieved_weight = len(core_matched) × 2 + len(non_core_matched)
-score = (achieved_weight / total_weight) × 100
-score += min(5, len(extra_skills) // 3)   # bonus
-score = min(100, score)
-```
-
-### Supported Job Roles
-
-| Role | Core Skills |
-|---|---|
-| Data Scientist | Python, Machine Learning, Statistics, SQL, Pandas |
-| Software Engineer | Python, JavaScript, Git, Data Structures, Algorithms |
-| Frontend Developer | HTML, CSS, JavaScript, React, Git |
-| Backend Developer | Python, SQL, REST API, Docker, Git |
-| DevOps Engineer | Docker, Kubernetes, AWS, CI/CD, Linux |
-| Machine Learning Engineer | Python, Machine Learning, TensorFlow, Docker, MLOps |
-| Product Manager | Product Strategy, Agile, Data Analysis, Communication, User Research |
-| Cybersecurity Analyst | Network Security, Penetration Testing, Linux, Python, Incident Response |
-
----
-
-## Resume Builder
-
-### Templates
-
-| Template | Layout | Best For |
-|---|---|---|
-| Modern | Colored header bar + main/sidebar split | Tech, design roles |
-| Minimal | Clean single-column, centered header | Any role, ATS-safe |
-| Creative | Bold gradient header + pill skill tags | Design, marketing |
-| Professional | Serif font, double-ruled sections | Finance, law, consulting |
-| ATS Friendly | Plain text, no colors or columns | Maximizing ATS pass rate |
-| Executive | Dark header + accent left-border entries | Senior / leadership roles |
-
-### Form Sections
-- Personal Information (name, email, phone, LinkedIn, GitHub, location, website)
-- Summary / Objective (with character counter)
-- Skills (inline tag editor, add/remove individually)
-- Experience (multiple entries, current job toggle, bullet-point descriptions)
-- Education (multiple entries with GPA)
-- Projects (name, tech stack, description, link)
-- Certifications (name, issuer, date, credential link)
-
-### PDF Export
-The live preview `div` is captured by `html2pdf.js` at 2× scale using `html2canvas`, then converted to a letter-size PDF via jsPDF. The filename is auto-generated as `{name}_{template}.pdf`.
-
----
-
-## API Reference
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/` | Health check |
-| GET | `/api/roles` | List all available job roles |
-| POST | `/api/analyze` | Analyze resume against a job role |
-| POST | `/api/compare` | Compare resume against all roles |
-| POST | `/api/report` | Generate and download PDF report |
-
-### POST /api/analyze
-
-**Request:** `multipart/form-data`
-- `file` — PDF or DOCX resume file
-- `job_role` — Target role string (e.g., `"Data Scientist"`)
-
-**Response:**
-```json
-{
-  "job_role": "Data Scientist",
-  "match_score": 72,
-  "resume_score": 78,
-  "matched_skills": ["python", "sql", "pandas"],
-  "missing_skills": ["docker", "spark", "mlflow"],
-  "extra_skills": ["react", "node.js"],
-  "core_matched": ["python", "sql"],
-  "core_missing": [],
-  "total_required": 35,
-  "total_matched": 18,
-  "suggestions": ["..."],
-  "courses": [{ "skill": "docker", "title": "...", "platform": "...", "url": "...", "level": "..." }],
-  "ats_tips": ["..."],
-  "word_count": 412
-}
-```
-
----
-
-## Docker Deployment (Recommended)
-
-### Prerequisites
-- Docker Desktop installed on your machine
-- Git for cloning the repository
-
-### Quick Start
-
-1. **Clone and Deploy:**
-```bash
-git clone https://github.com/suyashbelhekar/Ai-resume-Analyzer-.git
-cd Ai-resume-Analyzer-
-docker-compose up --build -d
-```
-
-2. **Access the Application:**
-- Frontend: http://localhost:80
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-
-### Individual Services
-
-#### Backend Only:
-```bash
-cd backend
-docker build -t ai-resume-analyzer-backend .
-docker run -p 8000:8000 ai-resume-analyzer-backend
-```
-
-#### Frontend Only:
-```bash
-cd frontend
-docker build -t ai-resume-analyzer-frontend .
-docker run -p 80:80 ai-resume-analyzer-frontend
-```
-
-### Production Deployment
-
-#### Deploy to Cloud:
-```bash
-# Build and push to Docker Hub
-docker build -t suyashbelhekar/ai-resume-analyzer:latest ./backend
-docker push suyashbelhekar/ai-resume-analyzer:latest
-
-# Deploy on cloud server
-docker run -d -p 8000:8000 --name ai-resume-backend suyashbelhekar/ai-resume-analyzer:latest
-```
-
-#### Environment Variables:
-```bash
-# Create .env file
-echo "PYTHONUNBUFFERED=1" > .env
-echo "BACKEND_HOST=0.0.0.0" >> .env
-echo "BACKEND_PORT=8000" >> .env
-```
-
----
-
-## Manual Deployment
-
-### Docker Deployment (Recommended)
-
-1. **Clone and navigate to the project:**
-```bash
-git clone https://github.com/suyashbelhekar/ai-resume-analyzer.git
-cd ai-resume-analyzer
-```
-
-2. **Build and run with Docker Compose:**
-```bash
-docker-compose up --build
-```
-
-### Manual Deployment
-
-#### Backend Deployment
+### 3. Install & Start Backend
 ```bash
 cd backend
 pip install -r requirements.txt
-pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
 python main.py
 ```
+*Backend runs at: `http://localhost:8000` (API Docs: `http://localhost:8000/docs`)*
 
-#### Frontend Deployment
+### 4. Install & Start Frontend
 ```bash
 cd frontend
 npm install
-npm run build
-# Serve the dist folder with your preferred web server (nginx, apache, etc.)
+npm run dev
 ```
+*Frontend runs at: `http://localhost:5173`*
 
-### Environment Variables
-
-Copy the example environment files:
-```bash
-cp .env.example .env
-cp frontend/.env.example frontend/.env
-```
-
-Edit the `.env` files with your configuration.
-
-### GitHub Actions (CI/CD)
-
-The project includes GitHub Actions workflow for automatic deployment. Configure your deployment secrets in GitHub repository settings.
+### 5. Quick Windows Launcher
+Double-click `start-all.bat` to launch both servers simultaneously.
 
 ---
 
-## Getting Started (Development)
+## 📡 API Reference Overview
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+
-
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/jd/analyze` | Parse job description from text or document |
+| `POST` | `/api/match` | Multi-dimensional 9D resume + JD match |
+| `POST` | `/api/skill-gap` | Matched evidence quotes & missing gap advice |
+| `POST` | `/api/rewrite` | AI Resume Rewriter with 6 transformation modes |
+| `POST` | `/api/tailored-resume` | Generate job-tailored resume |
+| `POST` | `/api/ats/analyze` | Deterministic & semantic ATS simulation |
+| `POST` | `/api/roadmap` | Generate weekly career transition roadmap |
+| `POST` | `/api/interview/generate` | Generate categorized interview questions |
+| `POST` | `/api/interview/evaluate` | Evaluate candidate mock interview answer |
+| `GET/POST` | `/api/applications` | CRUD operations for Job Application Tracker |
+| `GET/POST` | `/api/resumes/versions` | Manage & compare resume iterations |
 
 ---
 
-## License
-
-MIT
+## 📄 License
+This project is licensed under the MIT License.

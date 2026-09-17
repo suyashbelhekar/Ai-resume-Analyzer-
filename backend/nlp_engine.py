@@ -1,27 +1,54 @@
 """
-NLP Engine for resume parsing and skill extraction.
-Uses spaCy for NER and TF-IDF + cosine similarity for skill matching.
+NLP Engine for resume parsing, skill extraction, and offline fallback analysis.
+Combines Google Gemini AI with local NLP/spaCy, TF-IDF cosine similarity, and regex evidence mapping.
 """
 
 import re
 import io
-import spacy
+import sys
+import os
+import logging
+from typing import List, Dict, Any, Optional
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from skill_db import JOB_ROLES, COURSE_RECOMMENDATIONS, ATS_KEYWORDS
+from gemini_service import (
+    is_gemini_active,
+    compare_resume_with_jd,
+    identify_skill_gaps_and_evidence,
+    generate_career_roadmap,
+    generate_interview_questions
+)
 
-# Load spaCy model
+logger = logging.getLogger(__name__)
+
+# Attempt to load spaCy model gracefully
+nlp = None
 try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    import subprocess
-    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
-    nlp = spacy.load("en_core_web_sm")
+    import spacy
+    try:
+        nlp = spacy.load("en_core_web_sm")
+    except Exception:
+        try:
+            import subprocess
+            logger.info("Downloading spaCy en_core_web_sm model...")
+            subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"], check=True)
+            nlp = spacy.load("en_core_web_sm")
+        except Exception as e:
+            logger.warning("Could not load/download spaCy model; falling back to regex + TF-IDF parsing: %s", e)
+except ImportError:
+    logger.warning("spaCy is not installed. Using regex & TF-IDF parser.")
+
+
+def is_gemini_available() -> bool:
+    """Check if Gemini AI is active and configured."""
+    return is_gemini_active()
 
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
-    """Extract text from PDF bytes."""
+    """Extract text from PDF bytes with multi-library fallback."""
+    # Try pdfplumber first
     try:
         import pdfplumber
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
@@ -30,9 +57,26 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
                 page_text = page.extract_text()
                 if page_text:
                     text += page_text + "\n"
-        return text
+            if text.strip():
+                return text
     except Exception as e:
-        raise ValueError(f"Failed to extract PDF text: {str(e)}")
+        logger.debug("pdfplumber failed, trying pypdf: %s", e)
+
+    # Fallback to pypdf
+    try:
+        from pypdf import PdfReader
+        reader = PdfReader(io.BytesIO(file_bytes))
+        text = ""
+        for page in reader.pages:
+            t = page.extract_text()
+            if t:
+                text += t + "\n"
+        if text.strip():
+            return text
+    except Exception as e:
+        logger.error("pypdf extraction failed: %s", e)
+
+    raise ValueError("Failed to extract text from PDF. Ensure the file contains selectable text.")
 
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
@@ -40,10 +84,26 @@ def extract_text_from_docx(file_bytes: bytes) -> str:
     try:
         from docx import Document
         doc = Document(io.BytesIO(file_bytes))
-        text = "\n".join([para.text for para in doc.paragraphs])
+        text = "\n".join([para.text for para in doc.paragraphs if para.text])
         return text
     except Exception as e:
         raise ValueError(f"Failed to extract DOCX text: {str(e)}")
+
+
+def extract_text_from_file(file_bytes: bytes, filename: str) -> str:
+    """Extract text from PDF, DOCX, DOC, or TXT file bytes."""
+    fname_lower = filename.lower()
+    if fname_lower.endswith(".pdf"):
+        return extract_text_from_pdf(file_bytes)
+    elif fname_lower.endswith((".docx", ".doc")):
+        return extract_text_from_docx(file_bytes)
+    elif fname_lower.endswith((".txt", ".md")):
+        try:
+            return file_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            return file_bytes.decode("latin-1", errors="ignore")
+    else:
+        raise ValueError("Unsupported file format. Please upload PDF, DOCX, or TXT.")
 
 
 def preprocess_text(text: str) -> str:
@@ -56,27 +116,30 @@ def preprocess_text(text: str) -> str:
 
 def extract_skills_from_text(text: str, all_skills: list) -> list:
     """
-    Extract skills using NER + keyword matching + TF-IDF.
+    Extract skills using regex keyword matching, spaCy NER, and TF-IDF cosine similarity.
     """
     text_lower = preprocess_text(text)
     found_skills = set()
 
-    # 1. Direct keyword matching
+    # 1. Direct keyword matching (with boundary checking for clean matches)
     for skill in all_skills:
         skill_lower = skill.lower()
-        # Use word boundary matching for short skills
-        pattern = r'\b' + re.escape(skill_lower) + r'\b'
+        pattern = r'(?<![a-zA-Z0-9])' + re.escape(skill_lower) + r'(?![a-zA-Z0-9])'
         if re.search(pattern, text_lower):
-            found_skills.add(skill.lower())
+            found_skills.add(skill_lower)
 
-    # 2. spaCy NER for additional tech entities
-    doc = nlp(text[:100000])  # limit for performance
-    for ent in doc.ents:
-        ent_text = ent.text.lower().strip()
-        if ent.label_ in ["ORG", "PRODUCT", "GPE"] and len(ent_text) > 2:
-            for skill in all_skills:
-                if ent_text in skill.lower() or skill.lower() in ent_text:
-                    found_skills.add(skill.lower())
+    # 2. spaCy NER (if available)
+    if nlp is not None:
+        try:
+            doc = nlp(text[:100000])
+            for ent in doc.ents:
+                ent_text = ent.text.lower().strip()
+                if ent.label_ in ["ORG", "PRODUCT", "GPE"] and len(ent_text) > 2:
+                    for skill in all_skills:
+                        if ent_text in skill.lower() or skill.lower() in ent_text:
+                            found_skills.add(skill.lower())
+        except Exception:
+            pass
 
     # 3. TF-IDF similarity for fuzzy matching
     if len(text_lower.split()) > 10:
@@ -97,11 +160,67 @@ def extract_skills_from_text(text: str, all_skills: list) -> list:
     return list(found_skills)
 
 
+def extract_skill_evidence_offline(resume_text: str, matched_skills: list) -> list:
+    """
+    Locate exact sentences and sections where skills appear in the resume text (offline fallback).
+    """
+    lines = resume_text.splitlines()
+    paragraphs = [p.strip() for p in resume_text.split('\n\n') if p.strip()]
+    
+    current_section = "General / Skills"
+    evidence_list = []
+
+    for skill in matched_skills:
+        skill_lower = skill.lower()
+        pattern = r'(?i)\b' + re.escape(skill_lower) + r'\b'
+        
+        found_quote = ""
+        found_section = "Skills & Projects"
+        confidence = 88
+
+        # Scan paragraphs to find context sentence
+        for p in paragraphs:
+            if re.search(pattern, p):
+                # Split into sentences
+                sentences = re.split(r'(?<=[.!?])\s+', p)
+                for s in sentences:
+                    if re.search(pattern, s):
+                        found_quote = s.strip()
+                        break
+                if found_quote:
+                    # Estimate section
+                    p_lower = p.lower()
+                    if "project" in p_lower:
+                        found_section = "Projects"
+                        confidence = 94
+                    elif "experience" in p_lower or "developer" in p_lower or "engineer" in p_lower:
+                        found_section = "Experience"
+                        confidence = 92
+                    elif "education" in p_lower or "university" in p_lower:
+                        found_section = "Education"
+                        confidence = 85
+                    else:
+                        found_section = "Technical Skills"
+                        confidence = 90
+                    break
+
+        if not found_quote:
+            found_quote = f"Mentioned in resume as {skill}."
+            found_section = "Skills"
+            confidence = 80
+
+        evidence_list.append({
+            "skill": skill.title() if len(skill) > 3 else skill.upper(),
+            "evidence_quote": found_quote[:200],
+            "section_source": found_section,
+            "confidence": confidence
+        })
+
+    return evidence_list
+
+
 def calculate_match_score(extracted_skills: list, required_skills: list, core_skills: list) -> dict:
-    """
-    Calculate match percentage using weighted scoring.
-    Core skills have higher weight.
-    """
+    """Calculate match percentage using weighted scoring."""
     extracted_set = set(s.lower() for s in extracted_skills)
     required_set = set(s.lower() for s in required_skills)
     core_set = set(s.lower() for s in core_skills)
@@ -141,10 +260,10 @@ def get_course_recommendations(missing_skills: list) -> list:
     recommendations = []
     seen_titles = set()
 
-    for skill in missing_skills[:8]:  # top 8 missing skills
+    for skill in missing_skills[:8]:
         skill_lower = skill.lower()
         courses = COURSE_RECOMMENDATIONS.get(skill_lower, COURSE_RECOMMENDATIONS["default"])
-        for course in courses[:1]:  # 1 course per skill
+        for course in courses[:1]:
             if course["title"] not in seen_titles:
                 recommendations.append({
                     "skill": skill,
@@ -159,30 +278,30 @@ def get_course_recommendations(missing_skills: list) -> list:
 
 
 def generate_ai_suggestions(score: int, missing_skills: list, matched_skills: list, job_role: str) -> list:
-    """Generate personalized improvement suggestions."""
+    """Generate localized improvement suggestions."""
     suggestions = []
 
     if score < 40:
-        suggestions.append(f"Your profile needs significant development for {job_role}. Focus on building core technical skills first.")
+        suggestions.append(f"Your profile needs development for {job_role}. Prioritize building core technical competencies first.")
     elif score < 60:
-        suggestions.append(f"You have a foundation for {job_role}. Prioritize learning the missing core skills to become competitive.")
+        suggestions.append(f"You have a solid base for {job_role}. Focus on the missing core skills to become an attractive candidate.")
     elif score < 80:
-        suggestions.append(f"Good match for {job_role}! Fill the skill gaps to stand out from other candidates.")
+        suggestions.append(f"Strong match for {job_role}! Bridge key skill gaps and add metric-driven achievements to stand out.")
     else:
-        suggestions.append(f"Excellent match for {job_role}! Polish your resume and highlight your strongest skills.")
+        suggestions.append(f"Outstanding match for {job_role}! Fine-tune leadership, system architecture, and impactful project highlights.")
 
     if missing_skills:
         top_missing = missing_skills[:3]
-        suggestions.append(f"Priority skills to learn: {', '.join(top_missing)}. These are highly valued by employers.")
+        suggestions.append(f"Priority skills to learn: {', '.join(top_missing)}. These are highly sought after by recruiters.")
 
     if len(matched_skills) > 5:
-        suggestions.append("Quantify your achievements — add metrics like 'improved performance by 30%' or 'reduced load time by 2s'.")
+        suggestions.append("Quantify your achievements — include measurable impacts like 'boosted performance by 35%' or 'reduced downtime by 40%'.")
 
-    suggestions.append("Use action verbs: 'Developed', 'Architected', 'Optimized', 'Led', 'Implemented' to strengthen impact.")
-    suggestions.append("Tailor your resume summary to mention the specific job role and your top 3 matching skills.")
+    suggestions.append("Use strong action verbs: 'Architected', 'Spearheaded', 'Optimized', 'Engineered', and 'Implemented'.")
+    suggestions.append(f"Tailor your headline and summary to specifically target {job_role} with your top matching skills.")
 
     if score >= 60:
-        suggestions.append("Consider adding a portfolio or GitHub link showcasing projects that use your key skills.")
+        suggestions.append("Include live portfolio links, case studies, or GitHub repositories demonstrating practical experience.")
 
     return suggestions
 
@@ -192,13 +311,14 @@ def get_ats_tips(job_role: str, missing_skills: list) -> list:
     tips = []
     keywords = ATS_KEYWORDS.get(job_role, [])
 
-    tips.append(f"Include these ATS-friendly phrases: {', '.join(keywords[:3])}")
-    tips.append("Use standard section headers: 'Work Experience', 'Education', 'Skills', 'Projects'")
-    tips.append("Avoid tables, columns, and graphics — ATS systems often can't parse them")
-    tips.append("Save your resume as a .docx or simple PDF for best ATS compatibility")
+    if keywords:
+        tips.append(f"Include essential ATS phrases: {', '.join(keywords[:3])}")
+    tips.append("Use standard, single-column section headers: 'Experience', 'Technical Skills', 'Education', 'Projects'")
+    tips.append("Avoid complex multi-column tables, text boxes, and embedded graphics that ATS parsers can misread")
+    tips.append("Save and submit resumes as clean PDF or DOCX format for optimal ATS parsing")
 
     if missing_skills:
-        tips.append(f"Add a dedicated 'Technical Skills' section listing: {', '.join(missing_skills[:4])}")
+        tips.append(f"Create a dedicated 'Technical Skills' section explicitly listing: {', '.join(missing_skills[:4])}")
 
     return tips
 
@@ -206,39 +326,69 @@ def get_ats_tips(job_role: str, missing_skills: list) -> list:
 def analyze_resume(file_bytes: bytes, filename: str, job_role: str) -> dict:
     """
     Main analysis pipeline.
+    Uses Google Gemini AI if GEMINI_API_KEY is configured, with seamless offline NLP fallback.
     """
-    # Extract text
-    if filename.lower().endswith(".pdf"):
-        text = extract_text_from_pdf(file_bytes)
-    elif filename.lower().endswith((".docx", ".doc")):
-        text = extract_text_from_docx(file_bytes)
-    else:
-        raise ValueError("Unsupported file format. Please upload PDF or DOCX.")
+    text = extract_text_from_file(file_bytes, filename)
+    if not text or len(text.strip()) < 30:
+        raise ValueError("Could not extract meaningful text from the resume. Please ensure the document is not an empty or scanned image file.")
 
-    if not text or len(text.strip()) < 50:
-        raise ValueError("Could not extract meaningful text from the resume.")
-
-    # Get job role data
     if job_role not in JOB_ROLES:
-        raise ValueError(f"Unknown job role: {job_role}")
+        # If user provides custom role, use standard skills database or generic fallback
+        role_data = {
+            "required_skills": ["problem solving", "communication", "git", "project management"],
+            "core_skills": ["communication", "git"],
+            "description": f"Role requirements for {job_role}"
+        }
+    else:
+        role_data = JOB_ROLES[job_role]
 
-    role_data = JOB_ROLES[job_role]
+    # Try Gemini AI first
+    if is_gemini_active():
+        try:
+            gemini_result = compare_resume_with_jd(text, f"Role: {job_role}\nDescription: {role_data['description']}\nRequired Skills: {', '.join(role_data['required_skills'])}", target_role=job_role)
+            if gemini_result:
+                # Merge into standard analysis structure
+                matched = gemini_result.get("matched_skills", [])
+                missing = gemini_result.get("missing_skills", [])
+                extra = [s for s in role_data["required_skills"] if s.lower() not in [m.lower() for m in matched]]
+                
+                return {
+                    "job_role": job_role,
+                    "role_description": role_data["description"],
+                    "extracted_skills": sorted(list(set([m.lower() for m in matched]))),
+                    "matched_skills": sorted(list(set(matched))),
+                    "missing_skills": sorted(list(set(missing))),
+                    "extra_skills": gemini_result.get("weak_skills", []),
+                    "core_matched": [s for s in role_data.get("core_skills", []) if s.lower() in [m.lower() for m in matched]],
+                    "core_missing": [s for s in role_data.get("core_skills", []) if s.lower() not in [m.lower() for m in matched]],
+                    "match_score": int(gemini_result.get("overall_match", 75)),
+                    "resume_score": int(gemini_result.get("ats_score", 80)),
+                    "total_required": len(role_data.get("required_skills", [])) or len(matched) + len(missing),
+                    "total_matched": len(matched),
+                    "word_count": len(text.split()),
+                    "courses": get_course_recommendations(missing),
+                    "suggestions": gemini_result.get("recommendations", []),
+                    "ats_tips": gemini_result.get("resume_issues", get_ats_tips(job_role, missing)),
+                    "text_preview": text[:500],
+                    "ai_powered": True
+                }
+        except Exception as e:
+            logger.warning("Gemini analyze failed, falling back to local NLP: %s", e)
+
+    # Fallback to local NLP + TF-IDF engine
     all_skills = list(set(
         skill for role in JOB_ROLES.values()
         for skill in role["required_skills"]
     ))
 
-    # Extract skills
     extracted_skills = extract_skills_from_text(text, all_skills)
 
-    # Calculate match
     match_data = calculate_match_score(
         extracted_skills,
         role_data["required_skills"],
         role_data["core_skills"]
     )
 
-    # Get recommendations
     courses = get_course_recommendations(match_data["missing_skills"])
     suggestions = generate_ai_suggestions(
         match_data["score"],
@@ -248,7 +398,6 @@ def analyze_resume(file_bytes: bytes, filename: str, job_role: str) -> dict:
     )
     ats_tips = get_ats_tips(job_role, match_data["missing_skills"])
 
-    # Resume quality score (separate from match score)
     word_count = len(text.split())
     resume_score = min(100, max(20,
         match_data["score"] * 0.6 +
@@ -274,22 +423,35 @@ def analyze_resume(file_bytes: bytes, filename: str, job_role: str) -> dict:
         "courses": courses,
         "suggestions": suggestions,
         "ats_tips": ats_tips,
-        "text_preview": text[:500]
+        "text_preview": text[:500],
+        "ai_powered": False
     }
 
 
 def compare_roles(file_bytes: bytes, filename: str) -> list:
-    """Compare resume against all job roles."""
+    """Compare resume against all job roles quickly."""
+    text = extract_text_from_file(file_bytes, filename)
+    if not text or len(text.strip()) < 30:
+        raise ValueError("Could not extract meaningful text from the resume.")
+
+    all_skills = list(set(
+        skill for role in JOB_ROLES.values()
+        for skill in role["required_skills"]
+    ))
+    extracted_skills = extract_skills_from_text(text, all_skills)
+
     results = []
-    for role in JOB_ROLES.keys():
-        try:
-            result = analyze_resume(file_bytes, filename, role)
-            results.append({
-                "role": role,
-                "score": result["match_score"],
-                "matched": result["total_matched"],
-                "total": result["total_required"]
-            })
-        except Exception:
-            pass
+    for role, role_data in JOB_ROLES.items():
+        match_data = calculate_match_score(
+            extracted_skills,
+            role_data["required_skills"],
+            role_data["core_skills"]
+        )
+        results.append({
+            "role": role,
+            "score": match_data["score"],
+            "matched": match_data["total_matched"],
+            "total": match_data["total_required"]
+        })
+
     return sorted(results, key=lambda x: x["score"], reverse=True)

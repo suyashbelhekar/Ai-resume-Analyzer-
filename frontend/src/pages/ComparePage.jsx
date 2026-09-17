@@ -32,7 +32,7 @@ export default function ComparePage({ result, setResult, uploadedFile, setUpload
       let data
       if (useDemoMode) {
         // Use demo data for GitHub Pages
-        await new Promise(resolve => setTimeout(resolve, 3000)) // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1200))
         data = demoCompareData
         toast.success('Demo comparison complete!')
       } else {
@@ -42,7 +42,7 @@ export default function ComparePage({ result, setResult, uploadedFile, setUpload
         const response = await axios.post('/api/compare', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
-        data = response.data
+        data = response.data?.comparisons || response.data
         toast.success('Comparison complete!')
       }
       setResult(data)
@@ -53,10 +53,16 @@ export default function ComparePage({ result, setResult, uploadedFile, setUpload
     }
   }
 
-  const chartData = result?.map((r) => ({
-    name: r.role.replace(' Engineer', ' Eng.').replace(' Developer', ' Dev.'),
-    score: r.score,
-  })) || []
+  const comparisonsList = Array.isArray(result) ? result : (result?.comparisons || [])
+
+  const chartData = comparisonsList.map((r) => {
+    const roleName = (r.role || r.job_role || '').replace(' Engineer', ' Eng.').replace(' Developer', ' Dev.')
+    const scoreVal = r.score ?? r.match_score ?? 0
+    return {
+      name: roleName,
+      score: scoreVal,
+    }
+  })
 
   return (
     <>
@@ -93,7 +99,7 @@ export default function ComparePage({ result, setResult, uploadedFile, setUpload
         </motion.div>
 
         <AnimatePresence>
-          {result && (
+          {comparisonsList.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="glass-card mb-6">
                 <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
@@ -115,13 +121,15 @@ export default function ComparePage({ result, setResult, uploadedFile, setUpload
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {result.map((r, i) => {
+                {comparisonsList.map((r, i) => {
+                  const roleName = r.role || r.job_role || 'Job Role'
+                  const scoreVal = r.score ?? r.match_score ?? 0
                   const isTop = i === 0
-                  const scoreColor = r.score >= 75 ? 'text-emerald-600' :
-                    r.score >= 50 ? 'text-amber-600' : 'text-red-500'
+                  const scoreColor = scoreVal >= 75 ? 'text-emerald-600' :
+                    scoreVal >= 50 ? 'text-amber-600' : 'text-red-500'
 
                   return (
-                    <motion.div key={r.role} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                    <motion.div key={roleName} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.06 }}
                       className={`bg-white rounded-2xl p-5 border relative shadow-sm ${
                         isTop ? 'border-primary-300 bg-primary-50/50' : 'border-slate-200'
@@ -134,19 +142,23 @@ export default function ComparePage({ result, setResult, uploadedFile, setUpload
                         </div>
                       )}
                       <div className="flex items-start justify-between mb-3">
-                        <p className="text-sm font-semibold text-slate-700 leading-tight">{r.role}</p>
-                        <span className={`text-lg font-bold ${scoreColor}`}>{r.score}%</span>
+                        <p className="text-sm font-semibold text-slate-700 leading-tight">{roleName}</p>
+                        <span className={`text-lg font-bold ${scoreColor}`}>{scoreVal}%</span>
                       </div>
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2">
                         <motion.div
                           initial={{ width: 0 }}
-                          animate={{ width: `${r.score}%` }}
+                          animate={{ width: `${scoreVal}%` }}
                           transition={{ duration: 0.8, delay: 0.3 + i * 0.06 }}
                           className="h-full rounded-full"
                           style={{ background: COLORS[i % COLORS.length] }}
                         />
                       </div>
-                      <p className="text-xs text-slate-400">{r.matched}/{r.total} skills matched</p>
+                      <p className="text-xs text-slate-400">
+                        {r.matched !== undefined && r.total !== undefined
+                          ? `${r.matched}/${r.total} skills matched`
+                          : `Role match: ${scoreVal}%`}
+                      </p>
                     </motion.div>
                   )
                 })}

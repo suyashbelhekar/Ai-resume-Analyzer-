@@ -7,47 +7,58 @@
     box-sizing: border-box;
   }
   body {
-    @apply bg-slate-50 text-slate-800 font-sans antialiased;
+    @apply bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased transition-colors duration-200;
     background-image:
       radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
     min-height: 100vh;
   }
+  .dark body {
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+  }
   ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-slate-100;
+    @apply bg-slate-100 dark:bg-slate-900;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full;
+    @apply bg-slate-300 dark:bg-slate-700 rounded-full;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary-500;
+    @apply bg-primary-500 dark:bg-primary-400;
   }
 }
 
 @layer components {
   .glass {
-    @apply bg-white/80 backdrop-blur-md border border-slate-200/80;
+    @apply bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 transition-colors duration-200;
   }
   .glass-card {
-    @apply glass rounded-2xl p-6 shadow-sm;
+    @apply glass rounded-2xl p-6 shadow-sm dark:shadow-slate-950/40;
   }
   .glow {
     box-shadow: 0 0 30px rgba(99, 102, 241, 0.12);
   }
+  .dark .glow {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.25);
+  }
   .glow-sm {
     box-shadow: 0 0 15px rgba(99, 102, 241, 0.08);
   }
+  .dark .glow-sm {
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+  }
   .gradient-text {
-    @apply bg-gradient-to-r from-primary-600 to-violet-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary-600 via-indigo-600 to-violet-600 dark:from-primary-400 dark:via-indigo-400 dark:to-violet-400 bg-clip-text text-transparent;
   }
   .btn-primary {
     @apply bg-gradient-to-r from-primary-600 to-violet-600 hover:from-primary-500 hover:to-violet-500
            text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200
-           hover:scale-[1.02] active:scale-[0.98];
-    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.25);
+           hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-primary-500/20;
   }
   .btn-primary:hover {
     box-shadow: 0 4px 24px rgba(79, 70, 229, 0.4);
@@ -56,13 +67,13 @@
     @apply px-3 py-1 rounded-full text-xs font-medium transition-all duration-200;
   }
   .skill-matched {
-    @apply skill-tag bg-emerald-50 text-emerald-700 border border-emerald-200;
+    @apply skill-tag bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60;
   }
   .skill-missing {
-    @apply skill-tag bg-red-50 text-red-600 border border-red-200;
+    @apply skill-tag bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/60;
   }
   .skill-extra {
-    @apply skill-tag bg-blue-50 text-blue-600 border border-blue-200;
+    @apply skill-tag bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60;
   }
 }
 
@@ -100,4 +111,8 @@
   background: linear-gradient(90deg, rgba(0,0,0,0.03) 25%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0.03) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+.dark .shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.02) 75%);
+  background-size: 200% 100%;
 }

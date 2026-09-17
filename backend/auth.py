@@ -12,7 +12,7 @@ import base64
 from pathlib import Path
 
 USERS_FILE = Path(__file__).parent / "users.json"
-SECRET_KEY = "resume-ai-secret-2024-xK9mP3qL"  # change in production
+SECRET_KEY = os.getenv("SECRET_KEY", "resume-ai-secret-2024-xK9mP3qL")
 TOKEN_EXPIRE_HOURS = 24 * 7  # 7 days
 
 
@@ -69,28 +69,30 @@ def _verify_token(token: str) -> str | None:
 
 # ── Public API ──────────────────────────────────────────────────────────────
 
+from database import db_create_user, db_get_user_by_email
+
 def register_user(full_name: str, email: str, password: str) -> dict:
-    users = _load_users()
     email = email.lower().strip()
-    if email in users:
-        raise ValueError("An account with this email already exists.")
+    if not full_name.strip():
+        raise ValueError("Full name is required.")
+    if "@" not in email:
+        raise ValueError("Valid email is required.")
     if len(password) < 6:
         raise ValueError("Password must be at least 6 characters.")
-    users[email] = {
-        "full_name": full_name.strip(),
-        "email": email,
-        "password_hash": _hash_password(password),
-        "created_at": time.time(),
-    }
-    _save_users(users)
+    
+    existing = db_get_user_by_email(email)
+    if existing:
+        raise ValueError("An account with this email already exists.")
+    
+    pwd_hash = _hash_password(password)
+    user = db_create_user(full_name.strip(), email, pwd_hash)
     token = _create_token(email)
     return {"token": token, "user": {"full_name": full_name.strip(), "email": email}}
 
 
 def login_user(email: str, password: str) -> dict:
-    users = _load_users()
     email = email.lower().strip()
-    user = users.get(email)
+    user = db_get_user_by_email(email)
     if not user:
         raise ValueError("No account found with this email.")
     if user["password_hash"] != _hash_password(password):
@@ -103,8 +105,8 @@ def get_user_from_token(token: str) -> dict | None:
     email = _verify_token(token)
     if not email:
         return None
-    users = _load_users()
-    user = users.get(email)
+    user = db_get_user_by_email(email)
     if not user:
         return None
     return {"full_name": user["full_name"], "email": email}
+

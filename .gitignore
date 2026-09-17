@@ -102,10 +102,13 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+
+# SQLite Database
+*.db
+*.sqlite3
+career_ai.db
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
